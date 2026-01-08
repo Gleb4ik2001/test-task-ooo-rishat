@@ -16,6 +16,7 @@ SECRET_KEY = config('SECRET_KEY', cast = str)
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', cast = str)
 STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY', cast = str)
 
+
 DEBUG = config('DEBUG', cast = bool)
 
 ALLOWED_HOSTS = ['*']
@@ -100,3 +101,7 @@ USE_I18N = True
 USE_TZ = True
 
 STATIC_URL = 'static/'
+
+# media settings
+MEDIA_URL = "/media/"
+MEDIA_ROOT = BASE_DIR / "media"

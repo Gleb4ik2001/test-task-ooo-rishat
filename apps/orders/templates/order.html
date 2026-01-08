@@ -1,9 +1,9 @@
 {% extends "base.html" %}
 
-{% block title %}Order {{ order.id }}{% endblock %}
+{% block title %}Заказ {{ order.id }}{% endblock %}
 
 {% block content %}
-<h2>Order #{{ order.id }}</h2>
+<h2>Заказ #{{ order.id }}</h2>
 
 <ul class="list-group mb-3">
     {% for oi in order.items.all %}
@@ -17,7 +17,7 @@
 </ul>
 
 <button id="pay-button" class="btn btn-success w-100">
-    Pay Order
+    Оплатить заказ
 </button>
 
 <script src="https://js.stripe.com/v3/"></script>

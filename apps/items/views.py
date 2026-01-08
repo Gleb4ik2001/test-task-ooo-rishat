@@ -23,14 +23,13 @@ def index_page(request):
     })
 
 
-def buy_item(request: HttpRequest, id) -> JsonResponse:
+def buy_item(request, id):
     item = get_object_or_404(Item, id=id)
-
     session = stripe.checkout.Session.create(
         mode="payment",
         line_items=[{
             "price_data": {
-                "currency": "usd",
+                "currency": item.currency,
                 "product_data": {
                     "name": item.name,
                 },
@@ -38,11 +37,12 @@ def buy_item(request: HttpRequest, id) -> JsonResponse:
             },
             "quantity": 1,
         }],
-        success_url="http://localhost:8000/success/",
-        cancel_url="http://localhost:8000/cancel/",
+        success_url="http://127.0.0.1:8000/success/",
+        cancel_url="http://127.0.0.1:8000/cancel/",
     )
 
     return JsonResponse({"id": session.id})
+
 
 
 def item_page(request:HttpRequest, id) -> HttpResponse:
