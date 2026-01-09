@@ -3,13 +3,22 @@
 {% block content %}
 <h2>Корзина</h2>
 
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    {% endfor %}
+{% endif %}
+
 {% if order.items.all %}
 <ul class="list-group mb-3">
     {% for oi in order.items.all %}
     <li class="list-group-item d-flex justify-content-between align-items-center">
         <div>
             <strong>{{ oi.item.name }}</strong><br>
-            {{ oi.item.price_display|floatformat:2 }} $ × {{ oi.quantity }}
+            {{ oi.item.price_display|floatformat:2 }} {{ oi.item.currency|upper }} × {{ oi.quantity }}
         </div>
 
         <div class="btn-group">
@@ -21,9 +30,86 @@
     {% endfor %}
 </ul>
 
-<a href="/orders/buy-order/{{ order.id }}/" class="btn btn-success w-100">
+<!-- Информация о сумме -->
+<div class="card mb-3">
+    <div class="card-body">
+        <div class="d-flex justify-content-between mb-2">
+            <span>Промежуточная сумма:</span>
+            <strong>{{ subtotal|floatformat:2 }} {{ currency }}</strong>
+        </div>
+        
+        {% if order.discount %}
+        <div class="d-flex justify-content-between mb-2 text-success align-items-center">
+            <span>Скидка "{{ order.discount.name }}" ({{ order.discount.percent }}%):</span>
+            <div class="d-flex align-items-center">
+                <strong class="me-2">-{{ discount_amount|floatformat:2 }} {{ currency }}</strong>
+                <a href="/orders/remove-discount/" class="btn btn-sm btn-outline-danger">Удалить</a>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if order.tax %}
+        <div class="d-flex justify-content-between mb-2">
+            <span>Налог "{{ order.tax.name }}" ({{ order.tax.percent }}%):</span>
+            <strong>+{{ tax_amount|floatformat:2 }} {{ currency }}</strong>
+        </div>
+        {% endif %}
+        
+        <hr>
+        <div class="d-flex justify-content-between">
+            <span><strong>Итого:</strong></span>
+            <strong>{{ total|floatformat:2 }} {{ currency }}</strong>
+        </div>
+    </div>
+</div>
+
+<!-- Форма для применения скидки -->
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">Применить скидку</h5>
+        <form method="post" action="/orders/apply-discount/">
+            {% csrf_token %}
+            <div class="input-group">
+                <input type="text" class="form-control" name="discount_code" placeholder="Введите код скидки" required>
+                <button class="btn btn-primary" type="submit">Применить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Кнопка оплаты -->
+<button id="pay-button" class="btn btn-success w-100">
     Оплатить
-</a>
+</button>
+
+<script src="https://js.stripe.com/v3/"></script>
+<script>
+    const stripe = Stripe("{{ stripe_public_key }}");
+    const payButton = document.getElementById("pay-button");
+
+    payButton.addEventListener("click", function () {
+        payButton.disabled = true;
+        payButton.textContent = "Обработка...";
+        
+        fetch("/orders/buy-order/{{ order.id }}/")
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(data.error);
+                    payButton.disabled = false;
+                    payButton.textContent = "Оплатить";
+                } else {
+                    return stripe.redirectToCheckout({ sessionId: data.id });
+                }
+            })
+            .catch(error => {
+                console.error("Error:", error);
+                alert("Произошла ошибка при создании платежа");
+                payButton.disabled = false;
+                payButton.textContent = "Оплатить";
+            });
+    });
+</script>
 
 {% else %}
 <p>Корзина пуста</p>

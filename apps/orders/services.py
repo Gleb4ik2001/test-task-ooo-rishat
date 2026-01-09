@@ -1,6 +1,26 @@
+from typing import TYPE_CHECKING
+
+from django.http import HttpRequest
+
 from .models import Order
 
-def get_or_create_cart(request):
+if TYPE_CHECKING:
+    pass
+
+
+def get_or_create_cart(request: HttpRequest) -> Order:
+    """
+    Получает или создает корзину для текущей сессии пользователя.
+
+    Корзина хранится в сессии пользователя. Если корзина уже существует
+    и не оплачена, возвращается существующая. Иначе создается новая.
+
+    Args:
+        request: HTTP запрос с сессией
+
+    Returns:
+        Объект Order (корзина) для текущей сессии
+    """
     order_id = request.session.get("cart_id")
 
     if order_id:

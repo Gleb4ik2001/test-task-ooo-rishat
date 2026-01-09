@@ -11,9 +11,17 @@
                 <p class="card-text">{{ item.description }}</p>
                 <h4 class="mb-3">{{ item.price_display|floatformat:2 }} $</h4>
 
-                <button id="buy-button" class="btn btn-primary w-100">
-                    Buy
-                </button>
+                <div class="d-grid gap-2">
+                    <button id="buy-button" class="btn btn-primary">
+                        Оплатить через Checkout Session
+                    </button>
+                    <a
+                        href="{% url 'items:item_payment_intent_page' item.id %}"
+                        class="btn btn-outline-primary"
+                    >
+                        Оплатить через Payment Intent (на сайте)
+                    </a>
+                </div>
             </div>
         </div>
     </div>

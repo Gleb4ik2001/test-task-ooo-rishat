@@ -1,13 +1,34 @@
+"""Модели для работы с товарами."""
 from django.db import models
 
 from abstracts.models import TimeStampModel
 
+
 class Item(TimeStampModel):
-    
+    """
+    Модель товара.
+
+    Представляет товар в магазине с информацией о названии,
+    описании, цене, валюте и изображении.
+
+    Attributes:
+        name: Название товара
+        description: Описание товара
+        price: Цена товара в центах (для точности расчетов)
+        currency: Валюта товара (USD или KZT)
+        image: Изображение товара (опционально)
+        datetime_created: Дата и время создания
+        datetime_updated: Дата и время обновления
+
+    Properties:
+        price_display: Возвращает цену сразу в долларах (не в центах)
+    """
+
     class CurrencyChoices(models.TextChoices):
+        """Выбор валюты для товара."""
+
         USD = "usd", "USD"
         KZT = "kzt", "KZT"
-        
 
     name = models.CharField(
         verbose_name='название',
@@ -29,14 +50,23 @@ class Item(TimeStampModel):
     )
 
     @property
-    def price_display(self):
-        return self.price / 100
-    
+    def price_display(self) -> float:
+        """
+        Возвращает цену товара в обычном формате.
 
-    def __str__(self):
-        return f'{self.name} - ${self.price_display:2f}'
-    
+        Конвертирует цену из центов в обычные единицы валюты.
+
+        Returns:
+            Цена товара в обычном формате (не в центах)
+        """
+        return self.price / 100
+
+    def __str__(self) -> str:
+        return f'{self.name} - ${self.price_display:.2f}'
+
     class Meta:
+        """Метаданные модели."""
+
         verbose_name = 'товар'
         verbose_name_plural = 'товары'
         ordering = ('-id',)

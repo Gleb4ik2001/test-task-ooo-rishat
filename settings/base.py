@@ -1,25 +1,45 @@
-from pathlib import Path
-import sys
+"""Базовые настройки Django проекта."""
 import os
+import sys
+from pathlib import Path
 
 from decouple import config
 
-
+# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Добавляем пути к приложениям в sys.path
 sys.path.append(str(BASE_DIR))
-sys.path.append(os.path.join(BASE_DIR,'apps'))
+sys.path.append(os.path.join(BASE_DIR, 'apps'))
 
 
-SECRET_KEY = config('SECRET_KEY', cast = str)
+SECRET_KEY = config('SECRET_KEY', cast=str)
 
-# stripe
-STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', cast = str)
-STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY', cast = str)
+# Stripe - USD keys (default)
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', cast=str)
+STRIPE_PUBLIC_KEY = config('STRIPE_PUBLIC_KEY', cast=str)
+
+# Stripe optional
+STRIPE_SECRET_KEY_KZT = (
+    config('STRIPE_SECRET_KEY_KZT', default='', cast=str) or
+    STRIPE_SECRET_KEY
+)
+STRIPE_PUBLIC_KEY_KZT = (
+    config('STRIPE_PUBLIC_KEY_KZT', default='', cast=str) or
+    STRIPE_PUBLIC_KEY
+)
 
 
-DEBUG = config('DEBUG', cast = bool)
+DEBUG = config('DEBUG', cast=bool)
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='*',
+    cast=lambda v: (
+        [s.strip() for s in v.split(',')] if v != '*' else ['*']
+    )
+)
+
 
 DJANGO_APPS = [
     'django.contrib.admin',
@@ -30,12 +50,11 @@ DJANGO_APPS = [
     'django.contrib.staticfiles',
 ]
 
-PROJECT_APPS =[
+PROJECT_APPS = [
     'abstracts.apps.AbstractsConfig',
     'items.apps.ItemsConfig',
     'orders.apps.OrdersConfig'
 ]
-
 
 INSTALLED_APPS = DJANGO_APPS + PROJECT_APPS
 
@@ -76,18 +95,38 @@ DATABASES = {
     }
 }
 
+
+if 'DATABASE_URL' in os.environ:
+    import dj_database_url
+    DATABASES['default'] = dj_database_url.parse(
+        os.environ.get('DATABASE_URL')
+    )
+
+
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+        'NAME': (
+            'django.contrib.auth.password_validation.'
+            'UserAttributeSimilarityValidator'
+        ),
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+        'NAME': (
+            'django.contrib.auth.password_validation.'
+            'MinimumLengthValidator'
+        ),
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+        'NAME': (
+            'django.contrib.auth.password_validation.'
+            'CommonPasswordValidator'
+        ),
     },
     {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+        'NAME': (
+            'django.contrib.auth.password_validation.'
+            'NumericPasswordValidator'
+        ),
     },
 ]
 
@@ -100,8 +139,17 @@ USE_I18N = True
 
 USE_TZ = True
 
-STATIC_URL = 'static/'
 
-# media settings
+STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+
+
 MEDIA_URL = "/media/"
 MEDIA_ROOT = BASE_DIR / "media"
+
+
+if not DEBUG:
+    MIDDLEWARE.insert(1, 'whitenoise.middleware.WhiteNoiseMiddleware')
+    STATICFILES_STORAGE = (
+        'whitenoise.storage.CompressedManifestStaticFilesStorage'
+    )
