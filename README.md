@@ -65,6 +65,7 @@ cp env.example .env
 ```env
 SECRET_KEY=your-secret-key-here
 DEBUG=True
+ALLOWED_HOSTS=*
 
 # Stripe Keys - USD (default)
 STRIPE_SECRET_KEY=sk_test_your_stripe_secret_key_usd
@@ -73,24 +74,43 @@ STRIPE_PUBLIC_KEY=pk_test_your_stripe_public_key_usd
 # Stripe Keys - KZT (optional, will use USD keys if not provided)
 STRIPE_SECRET_KEY_KZT=sk_test_your_stripe_secret_key_kzt
 STRIPE_PUBLIC_KEY_KZT=pk_test_your_stripe_public_key_kzt
+
+# Database Configuration (PostgreSQL)
+# Если не указаны, будет использоваться SQLite
+DB_NAME=stripe_db
+DB_USER=stripe_user
+DB_PASSWORD=stripe_password
+DB_HOST=localhost
+DB_PORT=5432
 ```
 
-7. Выполните миграции:
+**Примечание:** Если вы не настроите PostgreSQL, проект будет использовать SQLite для локальной разработки.
+
+7. (Опционально) Настройте PostgreSQL:
+   - Установите PostgreSQL на вашей системе
+   - Создайте базу данных:
+   ```bash
+   createdb stripe_db
+   ```
+   - Убедитесь, что в `.env` указаны настройки PostgreSQL (см. выше)
+   - Если PostgreSQL не настроен, будет использоваться SQLite
+
+8. Выполните миграции:
 ```bash
 python manage.py migrate
 ```
 
-8. Создайте суперпользователя для доступа к админке:
+9. Создайте суперпользователя для доступа к админке:
 ```bash
 python manage.py createsuperuser
 ```
 
-9. Запустите сервер:
+10. Запустите сервер:
 ```bash
 python manage.py runserver
 ```
 
-10. Откройте в браузере:
+11. Откройте в браузере:
 - Главная страница: http://127.0.0.1:8000/
 - Админ панель: http://127.0.0.1:8000/admin/
 
@@ -98,12 +118,12 @@ python manage.py runserver
 
 1. Создайте файл `.env` (см. выше)
 
-2. Соберите и запустите контейнер:
+2. Соберите и запустите контейнеры (включая PostgreSQL):
 ```bash
 docker-compose up --build
 ```
 
-3. Выполните миграции (в другом терминале):
+3. Миграции выполнятся автоматически при запуске. Если нужно выполнить вручную:
 ```bash
 docker-compose exec web python manage.py migrate
 ```
@@ -116,6 +136,8 @@ docker-compose exec web python manage.py createsuperuser
 5. Откройте в браузере:
 - Главная страница: http://localhost:8000/
 - Админ панель: http://localhost:8000/admin/
+
+**Примечание:** Docker Compose автоматически настроит PostgreSQL. База данных будет сохранена в volume `postgres_data`.
 
 ## API Endpoints
 
